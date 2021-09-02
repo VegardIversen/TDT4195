@@ -40,12 +40,13 @@ fn offset<T>(n: u32) -> *const c_void {
 
 // == // Modify and complete the function below for the first task
 // unsafe fn FUNCTION_NAME(ARGUMENT_NAME: &Vec<f32>, ARGUMENT_NAME: &Vec<u32>) -> u32 { } 
-unsafe fn DrawTriangle(vertCor: &Vec<f32>, indices: &Vec<u32>) -> u32 {
+unsafe fn VAO(vertCor: &Vec<f32>, indices: &Vec<u32>) -> u32 {
 
     // unsigned int vao = 0;
     let mut vao: u32 = 0;
     let mut buffer_id: u32 = 0;
-    let mut vertex_index: u32 = 0;
+    let vertex_index: u32 = 0;
+    let mut index_buffer_id: u32 = 0;
 
 
     gl::GenVertexArrays(1, &mut vao);
@@ -64,10 +65,14 @@ unsafe fn DrawTriangle(vertCor: &Vec<f32>, indices: &Vec<u32>) -> u32 {
 
     gl::EnableVertexAttribArray(vertex_index);
 
+    gl::GenBuffers(1, &mut index_buffer_id);
+    assert_ne!(index_buffer_id, 0); // make sure 0 is not returned
+    gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, index_buffer_id);
 
-    glGenBuffers()
 
-    0
+    gl::BufferData(gl::ELEMENT_ARRAY_BUFFER, byte_size_of_array(& indices), pointer_to_array(&indices), gl::STATIC_DRAW);
+
+    return vao;
 } 
 
 
@@ -125,6 +130,18 @@ fn main() {
         // == // Set up your VAO here
         unsafe {
 
+            let v: Vec<f32> = vec![-0.6, -0.6, 0.0, 0.6, -0.6, 0.0, 0.0, 0.6, 0.0];
+            let indices: Vec<u32> = vec![0, 1, 2];
+
+            let draw_vao: u32 = 0;
+
+            gl::BindVertexArray(draw_vao);
+
+            
+            VAO(& v, & indices);
+
+            gl::DrawElements(gl::TRIANGLES, 3, gl::UNSIGNED_INT, ptr::null());
+
         }
 
         // Basic usage of shader helper:
@@ -135,8 +152,15 @@ fn main() {
         //     shader::ShaderBuilder::new()
         //        .attach_file("./path/to/shader.file")
         //        .link();
+        let shader = unsafe {
+            shader::ShaderBuilder::new()
+                    .attach_file("./shaders/simple.vert")
+                    .attach_file("./shaders/simple.frag")
+                    .link();
+        }
+        
         unsafe {
-
+            gl::UseProgram(0);
         }
 
         // Used to demonstrate keyboard handling -- feel free to remove
